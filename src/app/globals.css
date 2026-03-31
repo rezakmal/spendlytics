@@ -1,8 +1,11 @@
 @import "tailwindcss";
 @import "tw-animate-css";
 @import "shadcn/tailwind.css";
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
 
-@custom-variant dark (&:is(.dark *));
+/* @custom-variant dark (&:is(.dark *));
 
 @theme inline {
   --color-background: var(--background);
@@ -126,4 +129,53 @@
   html {
     @apply font-sans;
   }
+} */
+
+:root {
+  --bg-base:       #0F1117;
+  --bg-surface:    #131720;
+  --bg-sidebar:    #0C0E17;
+  --border:        #1E2535;
+  --text-primary:  #E2E8F0;
+  --text-muted:    #64748B;
+  --text-sub:      #475569;
+  --primary:       #4F46E5;
+  --primary-light: #1e1b4b;
+  --green:         #34d399;
+  --red:           #f87171;
+  --indigo:        #a5b4fc;
+}
+ 
+.dark {
+  --background: 222 47% 5%;
+  --foreground: 213 31% 91%;
+  --card: 220 40% 9%;
+  --card-foreground: 213 31% 91%;
+  --popover: 220 40% 9%;
+  --popover-foreground: 213 31% 91%;
+  --primary: 245 75% 52%;
+  --primary-foreground: 0 0% 100%;
+  --secondary: 220 40% 12%;
+  --secondary-foreground: 213 31% 91%;
+  --muted: 220 40% 12%;
+  --muted-foreground: 215 20% 45%;
+  --accent: 220 40% 15%;
+  --accent-foreground: 213 31% 91%;
+  --border: 220 35% 14%;
+  --input: 220 35% 14%;
+  --ring: 245 75% 52%;
+}
+ 
+html, body {
+  background-color: var(--bg-base);
+  color: var(--text-primary);
+}
+ 
+* { box-sizing: border-box; }
+ 
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: var(--bg-base); }
+::-webkit-scrollbar-thumb {
+  background: var(--border);
+  border-radius: 3px;
 }
