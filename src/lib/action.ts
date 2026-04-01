@@ -40,3 +40,27 @@ export async function addTransaction(formData: {
   revalidatePath("/transactions");
 }
 
+export async function createBudget(name: string) {
+  const supabase = await createClient();
+
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) {
+    throw new Error("Unauthorized");
+  }
+
+  const { data: profile } = await supabase.from("profiles").select("plan").eq("id", user.id).single();
+  if (profile?.plan === "free") {
+    const { count } = await supabase.from("budgets").select("*", { count: "exact", head: true }).eq("user_id", user.id);
+
+    if ((count ?? 0) >= 1) {
+      throw new Error("Free tier limited reached. Upgrade to Pro");
+    }
+  }
+
+  const { error } = await supabase.from("budgets").insert({ name, user_id: user.id });
+  if (error) {
+    throw new Error(error.message);
+  }
+
+  revalidatePath("/dashboard");
+}
