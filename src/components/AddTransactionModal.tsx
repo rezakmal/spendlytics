@@ -29,8 +29,8 @@ export default function AddTransactionModal({ budgetId }: { budgetId: string }) 
         amount: parseFloat(form.amount)
       });
       setOpen(false);
-    } catch (e: any) {
-      setError(e.message);
+    } catch (e) {
+      setError(e instanceof Error ? e.message : "Something went wrong");
     } finally { setLoading(false); }
   }
 
@@ -57,7 +57,7 @@ export default function AddTransactionModal({ budgetId }: { budgetId: string }) 
           <div>
             <Label className="text-[12px] text-dark-muted">Type</Label>
             <Select value={form.type}
-              onValueChange={v => setForm(f => ({ ...f, type: v as any }))}>
+              onValueChange={v => setForm(f => ({ ...f, type: v as "income" | "expense" }))}>
               <SelectTrigger className="bg-base border-dark-border text-dark-text">
                 <SelectValue />
               </SelectTrigger>

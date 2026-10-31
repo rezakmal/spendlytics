@@ -38,11 +38,11 @@ export default function CategoryChart({ transactions, plan }: { transactions: Tr
                 ))}
               </Pie>
               <Tooltip
-                formatter={(v: number) =>
+                formatter={(v) =>
                   new Intl.NumberFormat("id-ID", {
                     style: "currency", currency: "IDR",
                     minimumFractionDigits: 0
-                  }).format(v)}
+                  }).format(Number(v ?? 0))}
                 contentStyle={{ background:"#1E2535",
                   border:"none", borderRadius:8,
                   color:"#E2E8F0", fontSize:12 }}

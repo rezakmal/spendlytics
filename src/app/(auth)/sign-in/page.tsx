@@ -62,7 +62,7 @@ export default function SignInPage() {
               {loading ? "Signing in..." : "Sign in"}
             </Button>
             <p className="text-center text-sm text-dark-muted">
-              Don't have an account?{" "}
+              Don&apos;t have an account?{" "}
               <a href="/sign-up" className="text-dark-indigo underline">
                 Sign up
               </a>

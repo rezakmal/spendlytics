@@ -1,18 +1,14 @@
 "use client";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { LayoutDashboard, List, BarChart2, CreditCard, User } from "lucide-react";
+import { LayoutDashboard, List, BarChart2, CreditCard } from "lucide-react";
 import type { Plan } from "@/types";
 
 const NAV = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/transactions", label: "Transactions", icon: List },
-  { href: "/analytics", label: "Analytics", icon: BarChart2, proOnly: true }
-];
-
-const ACCOUNT = [
-  { href: "/billing", label: "Billing", icon: CreditCard },
-  { href: "/profile", label: "Profile", icon: User },
+  { href: "/analytics", label: "Analytics", icon: BarChart2, proOnly: true },
+  { href: "/billing", label: "Billing", icon: CreditCard }
 ];
 
 export default function Sidebar({ plan }: { plan: Plan }) {
