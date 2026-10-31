@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import { addTransaction } from "@/lib/action";
+import { addTransactionAction } from "@/lib/action";
 
 import { CATEGORIES } from "@/types";
 import { Button } from "./ui/button";
@@ -24,7 +24,7 @@ export default function AddTransactionModal({ budgetId }: { budgetId: string }) 
   async function handleSubmit() {
     setLoading(true); setError(null);
     try {
-      await addTransaction({
+      await addTransactionAction({
         ...form, budget_id: budgetId,
         amount: parseFloat(form.amount)
       });
