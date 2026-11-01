@@ -1,58 +1,113 @@
 # Spendlytics
 
-Personal finance tracker (MVP) — one-user-at-a-time budgets, manual income/expense tracking, IDR monthly reports, Free quotas, and an optional Stripe Pro subscription.
+A personal finance tracker web app. Users sign up, create monthly budgets, and manually record income and expenses in Indonesian Rupiah (IDR). The dashboard visualizes spending against budget limits, and a free-tier usage quota keeps usage fair per account.
 
-**Status: M0 (repository recovery & foundation) complete.** Authentication, budgets, and transactions have a working UI wired to Supabase, but the database schema, RLS policies, and real business rules land in M1–M3 — see "Honest status" below.
+## How it works
 
-## Stack
+- **Authentication** — Email/password sign-up and sign-in via Supabase Auth. Unauthenticated visitors are redirected to the sign-in page (`src/proxy.ts`).
+- **Budgets** — Each user has one or more budgets with a monthly limit and per-category limits. The free tier is limited to 1 budget.
+- **Transactions** — Users manually add income or expense entries. Each entry belongs to a budget and a category. The free tier allows 20 transactions per month; the quota is validated server-side in the transaction server actions.
+- **Dashboard & reports** — The dashboard shows budget usage with charts (Recharts). Monthly reports are IDR-based. The analytics and billing pages are currently placeholders.
+- **Pro subscription** — Stripe integration is planned for a paid tier (unlimited budgets/transactions, trends, CSV export). The `stripe` package is already installed; checkout is not wired up yet.
 
-- Node.js 24 LTS + npm (Bun was removed in M0)
-- Next.js 16 (App Router, React 19, strict TypeScript)
-- Supabase (Auth + PostgreSQL, RLS + migrations in M1)
-- Stripe Checkout/Portal/webhooks (M5)
-- Zod, Vitest + Playwright + pgTAP (test baseline lands in M7)
+## Tech stack
 
-## Architecture
+| Layer | Tools |
+|---|---|
+| Framework | Next.js 16 (App Router), React 19, TypeScript (strict) |
+| Runtime | Node.js 24 LTS + npm (see `.nvmrc`) |
+| Auth & database | Supabase (Auth + PostgreSQL, `@supabase/ssr` for cookie-based sessions) |
+| Payments | Stripe (planned) |
+| UI | Tailwind CSS 4, shadcn/ui, Radix UI primitives, Lucide icons, Recharts, sonner (toasts) |
+| Validation | Zod |
+| Code quality | ESLint 9, `tsc --noEmit` |
 
-Modular monolith: each domain lives in `src/features/<domain>` with three layers — `schema.ts` (Zod validation), `service.ts` (business rules), `repository.ts` (Supabase access). Thin `"use server"` actions in `src/lib/action.ts` and route handlers only wire auth context and revalidation. See [docs/adr/ADR-001-modular-monolith.md](docs/adr/ADR-001-modular-monolith.md).
+## Project structure
 
-Domains: `auth`, `budgets`, `transactions` (vertical slice implemented), `reports` and `billing` (stubs).
+The codebase is a modular monolith. Each domain lives in `src/features/<domain>` with three layers:
 
-## Getting started
+```
+src/
+├── app/                  # App Router pages & API routes
+│   ├── (auth)/           # sign-in / sign-up
+│   ├── dashboard/        # main dashboard
+│   ├── transactions/     # transaction list
+│   ├── analytics/        # placeholder
+│   ├── billing/          # placeholder
+│   └── api/v1/health     # health check endpoint
+├── features/
+│   ├── auth/             # schema.ts, service.ts, repository.ts
+│   ├── budgets/          # same 3-layer pattern
+│   ├── transactions/     # same 3-layer pattern
+│   ├── reports/          # stub
+│   └── billing/          # stub
+├── components/           # shared UI components
+├── lib/                  # env validation, server actions, Supabase clients
+├── proxy.ts              # auth guard / route redirection (Next.js proxy)
+└── types/
+```
 
-Requires Node 24 (see `.nvmrc`) and npm.
+Layer responsibilities:
+
+- `schema.ts` — Zod input validation
+- `service.ts` — business rules (e.g. quota checks)
+- `repository.ts` — database access via Supabase
+
+Thin `"use server"` actions in `src/lib/action.ts` only wire auth context and revalidation. See [docs/adr/ADR-001-modular-monolith.md](docs/adr/ADR-001-modular-monolith.md) for the full rationale.
+
+## Running locally
+
+Prerequisites: Node.js 24 LTS and npm.
 
 ```bash
 npm ci
-cp .env.example .env.local   # fill in Supabase values
+cp .env.example .env.local
+```
+
+Fill in `.env.local` with your Supabase project values:
+
+```bash
+NEXT_PUBLIC_SUPABASE_URL=        # from Supabase Dashboard → Settings → API
+NEXT_PUBLIC_SUPABASE_ANON_KEY=   # public anon key, safe for the browser
+NEXT_PUBLIC_APP_URL=http://localhost:3000
+SUPABASE_SERVICE_ROLE_KEY=       # server-only, never commit this
+```
+
+Then start the dev server:
+
+```bash
 npm run dev
 ```
 
-Scripts: `dev`, `build`, `start`, `lint`, `typecheck`.
+Open http://localhost:3000. Health check: http://localhost:3000/api/v1/health
 
-## Roadmap (gated milestones)
+### Database setup
 
-| Milestone | Deliverable |
+The app expects `profiles`, `budgets`, and `transactions` tables to already exist in your Supabase project. Migrations and Row Level Security policies are not yet included in this repo — create the tables in the Supabase dashboard (or SQL editor) before using the app.
+
+## Available scripts
+
+| Command | What it does |
 |---|---|
-| M0 | Runnable Node/npm foundation ← **current** |
-| M1 | PostgreSQL schema, RLS, Supabase SSR auth |
-| M2 | Budget CRUD, primary budget, category limits |
-| M3 | Transaction CRUD, atomic Free quota, idempotency |
-| M4 | Monthly dashboard & reports |
-| M5 | Stripe subscription lifecycle |
-| M6 | Pro trends & CSV export |
-| M7 | Contracts, security & CI verification |
-| M8 | 32-step UAT & MVP release |
+| `npm run dev` | Start the dev server |
+| `npm run build` | Production build |
+| `npm run start` | Run the production build |
+| `npm run lint` | ESLint |
+| `npm run typecheck` | TypeScript check without emitting |
 
-## Honest status (known gaps)
+## CI
 
-- Quota checks (20 tx/month Free, 1 budget Free) exist but are **non-atomic** and month logic is server-local, not Asia/Jakarta — fixed in M3.3.
-- No database migrations or RLS policies exist yet; the app expects `profiles`, `budgets`, `transactions` tables to already exist in Supabase.
-- Money amounts are handled as JS numbers in the UI — BIGINT/decimal-string handling lands with M3.1.
-- `/transactions`, `/analytics`, `/billing` are placeholder pages until M3/M4/M6.
-- The authoritative spec is the Spendlytics PRD (v1.0); out-of-scope items (bank linking, OCR, AI insights, recurring entries, multi-currency, microservices, …) are deliberately excluded.
+Every push to `main` or `development` and every pull request runs the pipeline in `.github/workflows/ci.yml`: install → lint → typecheck → build (with placeholder Supabase env vars).
+
+## Known limitations
+
+- Free-tier quota checks (20 tx/month, 1 budget) are validated server-side but are **not atomic** — concurrent requests could bypass them.
+- Month boundaries for the quota use server-local time, not Asia/Jakarta.
+- Money amounts are handled as JS numbers in the UI; high-precision decimal handling is not implemented yet.
+- `/transactions`, `/analytics`, and `/billing` are placeholder pages.
+- Out of scope by design: bank account linking, OCR receipt scanning, AI insights, recurring entries, multi-currency.
 
 ## Documentation
 
-- [docs/M0-audit.md](docs/M0-audit.md) — repository audit and baseline decision
+- [docs/M0-audit.md](docs/M0-audit.md) — repository audit and baseline decisions
 - [docs/adr/ADR-001-modular-monolith.md](docs/adr/ADR-001-modular-monolith.md) — architecture decision record
