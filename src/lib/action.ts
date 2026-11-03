@@ -1,6 +1,7 @@
 "use server";
 
 import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { addTransaction } from "@/features/transactions/service";
 import { createBudget } from "@/features/budgets/service";
@@ -31,4 +32,11 @@ export async function createBudgetAction(name: string) {
   await createBudget(supabase, user.id, { name });
 
   revalidatePath("/dashboard");
+}
+
+export async function signOutAction() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  revalidatePath("/", "layout");
+  redirect("/sign-in");
 }

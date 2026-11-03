@@ -13,6 +13,7 @@ export default function SignUpPage() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
   const supabase = createClient();
@@ -21,7 +22,8 @@ export default function SignUpPage() {
     e.preventDefault();
     setLoading(true);
     setError(null);
-    const { error } = await supabase.auth.signUp({ email, password });
+    setNotice(null);
+    const { data, error } = await supabase.auth.signUp({ email, password });
 
     if (error) {
       setError(error.message);
@@ -29,7 +31,16 @@ export default function SignUpPage() {
       return;
     }
 
+    // When email confirmation is enabled there is no session yet —
+    // the user must verify via the link in their inbox first.
+    if (!data.session) {
+      setNotice("Account created! Check your inbox to confirm your email before signing in.");
+      setLoading(false);
+      return;
+    }
+
     router.push("/dashboard");
+    router.refresh();
   }
 
   return (
@@ -57,6 +68,7 @@ export default function SignUpPage() {
                 required />
             </div>
             {error && <p className="text-dark-red text-sm">{error}</p>}
+            {notice && <p className="text-dark-indigo text-sm">{notice}</p>}
             <Button type="submit" disabled={loading}
               className="w-full bg-dark-primary hover:bg-indigo-500">
               {loading ? "Creating account..." : "Sign up"}

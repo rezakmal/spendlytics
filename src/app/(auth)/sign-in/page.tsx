@@ -1,7 +1,7 @@
 "use client";
 
-import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense, useState } from "react";
 import { createClient } from "@/lib/supabase/client";
 
 import { Button } from "@/components/ui/button";
@@ -9,12 +9,14 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-export default function SignInPage() {
+function SignInForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const message = searchParams.get("message");
   const supabase = createClient();
 
   async function handleSubmit(e: React.FormEvent) {
@@ -30,6 +32,7 @@ export default function SignInPage() {
     }
 
     router.push("/dashboard");
+    router.refresh();
   }
 
   return (
@@ -57,6 +60,16 @@ export default function SignInPage() {
                 required />
             </div>
             {error && <p className="text-dark-red text-sm">{error}</p>}
+            {message === "password_updated" && (
+              <p className="text-dark-indigo text-sm">
+                Password updated — sign in with your new password.
+              </p>
+            )}
+            <div className="text-right">
+              <a href="/forgot-password" className="text-[12px] text-dark-indigo underline">
+                Forgot password?
+              </a>
+            </div>
             <Button type="submit" disabled={loading}
               className="w-full bg-dark-primary hover:bg-indigo-500">
               {loading ? "Signing in..." : "Sign in"}
@@ -71,5 +84,13 @@ export default function SignInPage() {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+export default function SignInPage() {
+  return (
+    <Suspense>
+      <SignInForm />
+    </Suspense>
   );
 }
