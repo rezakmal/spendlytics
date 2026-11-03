@@ -1,4 +1,5 @@
 import type { Plan } from "@/types";
+import UserMenu from "@/components/UserMenu";
 
 export default function Navbar({ email, plan }: {email: string, plan: Plan}) {
   const initials = email.slice(0, 2).toUpperCase();
@@ -21,10 +22,7 @@ export default function Navbar({ email, plan }: {email: string, plan: Plan}) {
           px-[10px] py-[3px] rounded-full border border-[#3730a3]">
           {plan === "pro" ? "Pro plan" : "Free plan"}
         </span>
-        <div className="w-7 h-7 rounded-full bg-dark-primary
-          flex items-center justify-center text-[11px] font-medium text-white">
-          {initials}
-        </div>
+        <UserMenu email={email} initials={initials} />
       </div>
     </header>
   );
